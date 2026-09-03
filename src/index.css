@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --charcoal: #211d1b;
+  --charcoal-soft: #2b2622;
+  --paper: #ede7dc;
+  --paper-dim: #ddd5c5;
+  --ink: #3a332c;
+  --sage: #7a8b6f;
+  --sage-deep: #5e6d55;
+  --clay: #b5502e;
+  --clay-deep: #8f3d22;
+  --ash: #8c8378;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --radius: 3px;
+  --border: 1px solid rgba(33, 29, 27, 0.16);
+  --border-paper: 1px solid rgba(237, 231, 220, 0.18);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; margin: 0; color: var(--charcoal); }
+a { color: inherit; }
+button { font-family: var(--font-body); }
+:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+.container { max-width: 880px; margin: 0 auto; padding: 0 24px; width: 100%; }
+.mono { font-family: var(--font-mono); font-size: 0.85em; }
+.stamp { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; padding: 10px 20px; border: 3px solid currentColor; border-radius: 2px; transform: rotate(-1.5deg); letter-spacing: 0.01em; }
+.stamp--matches { color: var(--sage-deep); }
+.stamp--damage { color: var(--clay-deep); }
+.stamp--inconclusive { color: var(--ash); }
+.stamp--pending { color: var(--ash); border-style: dashed; transform: rotate(0deg); }
+.btn { font-family: var(--font-body); font-weight: 500; font-size: 0.95rem; padding: 11px 22px; border-radius: var(--radius); border: var(--border); background: transparent; color: var(--charcoal); cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease; }
+.btn:hover:not(:disabled) { background: rgba(33, 29, 27, 0.05); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn--primary { background: var(--charcoal); color: var(--paper); border-color: var(--charcoal); }
+.btn--primary:hover:not(:disabled) { background: var(--charcoal-soft); }
+.btn--sage { background: var(--sage); color: var(--paper); border-color: var(--sage); }
+.btn--sage:hover:not(:disabled) { background: var(--sage-deep); }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.field label { font-size: 0.85rem; font-weight: 500; color: var(--ink); }
+.field .hint { font-size: 0.8rem; color: var(--ash); }
+.field input, .field textarea, .field select { font-family: var(--font-body); font-size: 0.95rem; padding: 10px 12px; border: var(--border); border-radius: var(--radius); background: rgba(255, 255, 255, 0.4); color: var(--ink); }
+.field input:focus, .field textarea:focus, .field select:focus { background: rgba(255, 255, 255, 0.7); }
+.field textarea { resize: vertical; min-height: 90px; }
+.record { border: var(--border); border-left: 3px solid var(--charcoal); padding: 20px 24px; margin-bottom: 16px; background: rgba(255, 255, 255, 0.25); }
+.record-row { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid rgba(33, 29, 27, 0.08); font-size: 0.92rem; }
+.record-row:last-child { border-bottom: none; }
+.record-row dt { color: var(--ash); font-weight: 500; }
+.record-row dd { margin: 0; text-align: right; color: var(--ink); }
+.error-banner { background: rgba(181, 80, 46, 0.1); border: 1px solid rgba(181, 80, 46, 0.35); color: var(--clay-deep); padding: 12px 16px; border-radius: var(--radius); font-size: 0.9rem; margin-bottom: 16px; }
+.empty-state { border: 1px dashed rgba(33, 29, 27, 0.25); padding: 40px 24px; text-align: center; color: var(--ash); }
