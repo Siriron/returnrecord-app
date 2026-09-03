@@ -1,0 +1,8 @@
+.how-page { max-width: 680px; }
+.how-page h1 { font-size: 1.9rem; margin-bottom: 32px; }
+.how-page section { margin-bottom: 40px; }
+.how-page h2 { font-size: 1.25rem; margin-bottom: 14px; }
+.how-page p { color: var(--ink); margin: 0 0 14px; }
+.how-page ol { padding-left: 20px; display: flex; flex-direction: column; gap: 14px; }
+.how-page ol li { color: var(--ink); }
+.how-page strong { font-family: var(--font-mono); font-size: 0.9em; color: var(--charcoal); }
