@@ -1,0 +1,10 @@
+.detail-page { max-width: 720px; }
+.detail-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.detail-eyebrow { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ash); margin: 0 0 4px; }
+.detail-header h1 { font-size: 1.8rem; }
+.action-block { margin-top: 28px; padding-top: 24px; border-top: var(--border); }
+.action-block h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.action-block h3 { font-size: 0.98rem; margin: 20px 0 12px; }
+.reasoning { font-style: italic; color: var(--ink); margin: 0 0 12px; }
+.reason-list { margin: 0 0 16px; padding-left: 20px; color: var(--ash); font-size: 0.9rem; }
+.challenge-form { background: rgba(181, 80, 46, 0.06); border: 1px solid rgba(181, 80, 46, 0.2); padding: 16px 18px; border-radius: var(--radius); margin: 16px 0; }
