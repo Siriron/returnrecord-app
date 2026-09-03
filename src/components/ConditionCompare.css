@@ -1,0 +1,8 @@
+.compare { display: flex; align-items: stretch; gap: 0; border: 1px solid rgba(33, 29, 27, 0.16); background: rgba(255, 255, 255, 0.2); }
+.compare-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.compare-image { aspect-ratio: 4 / 3; background: var(--paper-dim); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.compare-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.compare-placeholder { color: var(--ash); font-size: 0.85rem; font-family: var(--font-mono); }
+.compare-label { padding: 10px 14px; font-size: 0.82rem; color: var(--ash); font-weight: 500; border-top: 1px solid rgba(33, 29, 27, 0.1); text-align: center; }
+.compare-seam { width: 2px; background: var(--charcoal); flex-shrink: 0; }
+@media (max-width: 640px) { .compare { flex-direction: column; } .compare-seam { width: auto; height: 2px; } }
