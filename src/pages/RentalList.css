@@ -1,0 +1,10 @@
+.list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.list-header h1 { font-size: 1.8rem; }
+.rental-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.rental-tile { display: flex; flex-direction: column; gap: 4px; padding: 18px; border: var(--border); border-left: 3px solid var(--charcoal); background: rgba(255, 255, 255, 0.25); text-decoration: none; color: var(--ink); transition: border-left-color 120ms ease; }
+.rental-tile:hover { border-left-color: var(--clay); }
+.rental-tile-num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ash); }
+.rental-tile strong { font-family: var(--font-display); font-size: 1.05rem; color: var(--charcoal); }
+.rental-tile-meta { font-size: 0.82rem; color: var(--ash); }
+.rental-tile-status { align-self: flex-start; margin-top: 8px; font-size: 0.75rem; font-weight: 500; padding: 3px 9px; border-radius: 999px; background: rgba(140, 131, 120, 0.15); color: var(--ash); }
+.status-checked { background: rgba(122, 139, 111, 0.18); color: var(--sage-deep); }
