@@ -1,0 +1,18 @@
+.site-header {
+  border-bottom: var(--border);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.site-header-inner { display: flex; align-items: center; gap: 32px; padding-top: 16px; padding-bottom: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; color: var(--charcoal); }
+.site-nav { display: flex; gap: 22px; flex: 1; }
+.site-nav a { text-decoration: none; font-size: 0.92rem; font-weight: 500; color: var(--ash); padding: 6px 0; border-bottom: 2px solid transparent; }
+.site-nav a.active, .site-nav a:hover { color: var(--charcoal); border-bottom-color: var(--clay); }
+.site-main { flex: 1; padding: 48px 0 80px; }
+.site-footer { border-top: var(--border); padding: 20px 0; }
+.site-footer-inner { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--ash); }
+.site-footer-inner a { color: var(--ash); text-decoration: underline; }
+@media (max-width: 700px) { .site-header-inner { flex-wrap: wrap; gap: 12px; } .site-nav { order: 3; width: 100%; gap: 16px; } }
