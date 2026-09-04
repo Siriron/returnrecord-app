@@ -11,7 +11,13 @@ import {
   timeUntil,
   REASON_LABEL,
 } from '../lib/evidence';
-import { CHALLENGE_REASON_CODES, type Rental, type ConditionCheck, type Challenge } from '../lib/types';
+import {
+  CHALLENGE_REASON_CODES,
+  type Rental,
+  type ConditionCheck,
+  type Challenge,
+  type ChallengeReasonCode,
+} from '../lib/types';
 import './RentalDetail.css';
 
 export function RentalDetail() {
@@ -25,7 +31,7 @@ export function RentalDetail() {
   const [error, setError] = useState<string | null>(null);
 
   const [returnUrl, setReturnUrl] = useState('');
-  const [challengeReason, setChallengeReason] = useState(CHALLENGE_REASON_CODES[0]);
+  const [challengeReason, setChallengeReason] = useState<ChallengeReasonCode>(CHALLENGE_REASON_CODES[0]);
   const [challengeStatement, setChallengeStatement] = useState('');
 
   const load = useCallback(async () => {
@@ -145,7 +151,7 @@ export function RentalDetail() {
           <p className="hint">Challenge window closes {formatEpoch(check.challenge_window_ends)} ({timeUntil(check.challenge_window_ends)} left).</p>
           {isParty && <div className="challenge-form">
             <h3>Disagree with this verdict?</h3>
-            <div className="field"><label htmlFor="reason">Reason</label><select id="reason" value={challengeReason} onChange={(e) => setChallengeReason(e.target.value)}>{CHALLENGE_REASON_CODES.map((rc) => <option key={rc} value={rc}>{rc.replaceAll('_', ' ').toLowerCase()}</option>)}</select></div>
+            <div className="field"><label htmlFor="reason">Reason</label><select id="reason" value={challengeReason} onChange={(e) => setChallengeReason(e.target.value as ChallengeReasonCode)}>{CHALLENGE_REASON_CODES.map((rc) => <option key={rc} value={rc}>{rc.replaceAll('_', ' ').toLowerCase()}</option>)}</select></div>
             <div className="field"><label htmlFor="statement">Statement</label><textarea id="statement" value={challengeStatement} onChange={(e) => setChallengeStatement(e.target.value)} placeholder="Explain specifically what the jury got wrong." /></div>
             <button className="btn" disabled={busy !== null || challengeStatement.trim().length < 10} onClick={() => runAction('open_challenge', () => writeContract('open_challenge', [check.check_id, challengeReason, challengeStatement.trim()]))}>{busy === 'open_challenge' ? 'Filing challenge…' : 'File challenge'}</button>
           </div>}
