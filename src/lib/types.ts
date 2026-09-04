@@ -66,3 +66,5 @@ export const CHALLENGE_REASON_CODES = [
   'PRE_EXISTING_DAMAGE_IGNORED',
   'EVIDENCE_STALE_SINCE',
 ] as const;
+
+export type ChallengeReasonCode = (typeof CHALLENGE_REASON_CODES)[number];
