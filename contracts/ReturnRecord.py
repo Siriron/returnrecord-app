@@ -141,6 +141,26 @@ DELIBERATE GAPS IN THIS CONTRACT, STATED EXPLICITLY:
     reaches lock_return simply never produces a condition record for
     either party, which is treated as acceptable (no reputation event
     should be manufactured for a rental with no return evidence at all).
+
+CHANGELOG (Sep 2026, in response to steward feedback on first submission):
+  - ReputationEntry split into role-specific counters (owner_* / renter_*)
+    instead of one shared set — the same address can be an owner in one
+    rental and a renter in another, and the two roles carry opposite
+    incentives; a single shared counter couldn't distinguish a bad
+    renter's pattern from a litigious owner's pattern. finalize_check and
+    get_reputation both updated to match.
+  - resolve_challenge's leader_fn now FORCES final_verdict to the
+    original check_mem.verdict for UPHOLD/REJECT deterministically,
+    rather than trusting the LLM's own echo of it — an UPHOLD or REJECT
+    paired with a changed final_verdict was previously possible if the
+    model produced that combination, since decision and final_verdict
+    were validated for cross-model agreement independently but never
+    checked against each other for internal consistency. Only OVERTURN
+    may now carry a genuinely different final_verdict, and an OVERTURN
+    with no valid new verdict (or one identical to the original) is
+    rejected outright rather than silently reclassified. validator_fn
+    independently re-enforces this same invariant rather than relying
+    solely on leader_fn's construction to guarantee it.
 """
 
 from genlayer import *
@@ -449,10 +469,28 @@ class Challenge:
 @dataclass
 class ReputationEntry:
     party: Address
-    condition_matches_count: u256
-    material_damage_count: u256
-    inconclusive_count: u256
+    # Role-specific counters (fix for steward-requested correction,
+    # Sep 2026): the same address can be an owner in one rental and a
+    # renter in another, and the two roles carry opposite incentives — a
+    # renter's material_damage count and an owner's material_damage_
+    # AS_OWNER count answer genuinely different questions ("does this
+    # person damage things they rent" vs "does this person's item keep
+    # coming back damaged, or do they keep filing damage claims"). A
+    # single shared counter collapses these into a number that can't
+    # distinguish a bad renter from a litigious owner, which is the
+    # confirmed defect this split fixes.
+    owner_condition_matches_count: u256
+    owner_material_damage_count: u256
+    owner_inconclusive_count: u256
+    renter_condition_matches_count: u256
+    renter_material_damage_count: u256
+    renter_inconclusive_count: u256
     last_verdict: str
+    last_verdict_role: str  # "owner" or "renter" — which role the last
+                              # verdict was recorded under, so a caller
+                              # reading last_verdict alone isn't misled
+                              # about which side of the transaction it
+                              # reflects
     last_finalized_at: u256
 
 
@@ -863,9 +901,29 @@ Respond ONLY with JSON using exactly these keys:
             decision = str(result.get("decision", "")).strip().upper()
             if decision not in ("UPHOLD", "OVERTURN", "REJECT"):
                 raise gl.vm.UserError("llm_invalid_decision")
-            final_verdict = _coerce_verdict(result.get("final_verdict", check_mem.verdict))
-            if final_verdict == "":
+
+            # Steward-requested fix (Sep 2026): UPHOLD and REJECT both
+            # mean "the original verdict stands" — final_verdict must be
+            # FORCED to check_mem.verdict deterministically for both,
+            # never taken from the LLM's own echo of it. Only OVERTURN is
+            # allowed to carry a genuinely different final_verdict. This
+            # makes an inconsistent (decision, final_verdict) pair
+            # structurally impossible to produce from this function,
+            # rather than relying on the LLM to self-report consistently
+            # and checking that report after the fact.
+            if decision == "OVERTURN":
+                final_verdict = _coerce_verdict(result.get("final_verdict"))
+                if final_verdict == "" or final_verdict == check_mem.verdict:
+                    # An OVERTURN with no valid new verdict, or one that
+                    # matches the original, is not a genuine overturn —
+                    # reject outright rather than silently reclassify it,
+                    # since guessing which the model "really meant" is
+                    # exactly the kind of leniency that reintroduces the
+                    # same inconsistency this fix removes.
+                    raise gl.vm.UserError("llm_overturn_without_new_verdict")
+            else:
                 final_verdict = check_mem.verdict
+
             summary = result.get("resolution_summary", "")
             return {
                 "decision": decision,
@@ -885,13 +943,28 @@ Respond ONLY with JSON using exactly these keys:
                 return False
             if not isinstance(my_data, dict):
                 return False
-            if leader_data.get("decision") not in ("UPHOLD", "OVERTURN", "REJECT"):
+            leader_decision = leader_data.get("decision")
+            if leader_decision not in ("UPHOLD", "OVERTURN", "REJECT"):
                 return False
-            if leader_data.get("decision") != my_data.get("decision"):
+            if leader_decision != my_data.get("decision"):
                 return False
-            if leader_data.get("final_verdict") not in _VALID_VERDICTS:
+            leader_final = leader_data.get("final_verdict")
+            if leader_final not in _VALID_VERDICTS:
                 return False
-            if leader_data.get("final_verdict") != my_data.get("final_verdict"):
+            if leader_final != my_data.get("final_verdict"):
+                return False
+            # Explicit cross-field consistency check (steward-requested
+            # fix, Sep 2026): independently re-enforced here, not just
+            # relied upon from leader_fn's own construction — UPHOLD/
+            # REJECT must reproduce the original verdict exactly; only
+            # OVERTURN may differ. leader_fn now makes the inconsistent
+            # case structurally unreachable, but this check is what
+            # actually verifies that invariant holds for THIS call,
+            # rather than trusting that leader_fn was never modified to
+            # violate it.
+            if leader_decision in ("UPHOLD", "REJECT") and leader_final != check_mem.verdict:
+                return False
+            if leader_decision == "OVERTURN" and leader_final == check_mem.verdict:
                 return False
             return True
 
@@ -937,25 +1010,43 @@ Respond ONLY with JSON using exactly these keys:
         if check.challenge_id == "":
             assert now > int(check.challenge_window_ends), "challenge window still open"
 
-        for party_addr in (rental.owner, rental.renter):
+        # Role-specific ledger update (steward-requested fix, Sep 2026):
+        # each party's counters are incremented only under the role they
+        # actually held in THIS rental — an owner's write never touches
+        # renter_* fields and vice versa, even if that same address has
+        # played the other role in a different rental.
+        for party_addr, role in ((rental.owner, "owner"), (rental.renter, "renter")):
             key = party_addr.as_hex.lower()
             if key not in self.reputation:
                 self.reputation[key] = ReputationEntry(
                     party=party_addr,
-                    condition_matches_count=u256(0),
-                    material_damage_count=u256(0),
-                    inconclusive_count=u256(0),
+                    owner_condition_matches_count=u256(0),
+                    owner_material_damage_count=u256(0),
+                    owner_inconclusive_count=u256(0),
+                    renter_condition_matches_count=u256(0),
+                    renter_material_damage_count=u256(0),
+                    renter_inconclusive_count=u256(0),
                     last_verdict="",
+                    last_verdict_role="",
                     last_finalized_at=u256(0),
                 )
             rep = self.reputation[key]
-            if check.verdict == "condition_matches":
-                rep.condition_matches_count = u256(int(rep.condition_matches_count) + 1)
-            elif check.verdict == "material_damage":
-                rep.material_damage_count = u256(int(rep.material_damage_count) + 1)
+            if role == "owner":
+                if check.verdict == "condition_matches":
+                    rep.owner_condition_matches_count = u256(int(rep.owner_condition_matches_count) + 1)
+                elif check.verdict == "material_damage":
+                    rep.owner_material_damage_count = u256(int(rep.owner_material_damage_count) + 1)
+                else:
+                    rep.owner_inconclusive_count = u256(int(rep.owner_inconclusive_count) + 1)
             else:
-                rep.inconclusive_count = u256(int(rep.inconclusive_count) + 1)
+                if check.verdict == "condition_matches":
+                    rep.renter_condition_matches_count = u256(int(rep.renter_condition_matches_count) + 1)
+                elif check.verdict == "material_damage":
+                    rep.renter_material_damage_count = u256(int(rep.renter_material_damage_count) + 1)
+                else:
+                    rep.renter_inconclusive_count = u256(int(rep.renter_inconclusive_count) + 1)
             rep.last_verdict = check.verdict
+            rep.last_verdict_role = role
             rep.last_finalized_at = u256(now)
             self.reputation[key] = rep
 
@@ -1033,19 +1124,27 @@ Respond ONLY with JSON using exactly these keys:
         if key not in self.reputation:
             return json.dumps({
                 "party": party_address,
-                "condition_matches_count": 0,
-                "material_damage_count": 0,
-                "inconclusive_count": 0,
+                "owner_condition_matches_count": 0,
+                "owner_material_damage_count": 0,
+                "owner_inconclusive_count": 0,
+                "renter_condition_matches_count": 0,
+                "renter_material_damage_count": 0,
+                "renter_inconclusive_count": 0,
                 "last_verdict": "",
+                "last_verdict_role": "",
                 "last_finalized_at": 0,
             })
         r = self.reputation[key]
         return json.dumps({
             "party": str(r.party),
-            "condition_matches_count": int(r.condition_matches_count),
-            "material_damage_count": int(r.material_damage_count),
-            "inconclusive_count": int(r.inconclusive_count),
+            "owner_condition_matches_count": int(r.owner_condition_matches_count),
+            "owner_material_damage_count": int(r.owner_material_damage_count),
+            "owner_inconclusive_count": int(r.owner_inconclusive_count),
+            "renter_condition_matches_count": int(r.renter_condition_matches_count),
+            "renter_material_damage_count": int(r.renter_material_damage_count),
+            "renter_inconclusive_count": int(r.renter_inconclusive_count),
             "last_verdict": r.last_verdict,
+            "last_verdict_role": r.last_verdict_role,
             "last_finalized_at": int(r.last_finalized_at),
         })
 
