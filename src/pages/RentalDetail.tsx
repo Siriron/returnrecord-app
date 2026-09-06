@@ -25,7 +25,7 @@ export function RentalDetail() {
   const [error, setError] = useState<string | null>(null);
 
   const [returnUrl, setReturnUrl] = useState('');
-  const [challengeReason, setChallengeReason] = useState(CHALLENGE_REASON_CODES[0]);
+  const [challengeReason, setChallengeReason] = useState<string>(CHALLENGE_REASON_CODES[0]);
   const [challengeStatement, setChallengeStatement] = useState('');
 
   const load = useCallback(async () => {
