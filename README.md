@@ -25,7 +25,7 @@
 
 ## What this is
 
-An owner locks a content-committed reference photo before handing over a rental item. A renter locks their own return photo before any dispute exists. Either party can then file a condition check, and an independent AI jury — several GenLayer validators, not one — visually compares the two images and reaches consensus on the item's condition. The verdict is written to a permanent, public record for both parties. No stake, no deposit, no GEN ever moves — the consequence is standing, not money.
+An owner locks a content-committed reference photo before handing over a rental item. A renter locks their own return photo before any dispute exists. Either party can then file a condition check, and an independent AI jury — several GenLayer validators, not one — visually compares the two images and reaches consensus on the item's condition. The verdict is written to a permanent, public record for both parties, tracked separately by role — an owner's record and a renter's record are two different questions, even for the same address. No stake, no deposit, no GEN ever moves — the consequence is standing, not money. Any address's record is viewable at `/reputation` in the live app.
 
 <br />
 
@@ -74,7 +74,7 @@ A check can also come back `voided` — decided by the same multi-validator cons
 
 | Network | Address | Explorer |
 |---|---|---|
-| StudioNet | `0x1B2C516eD354EfA26EF6ad2A0258755E926a740F` | [View](https://explorer-studio.genlayer.com/address/0x1B2C516eD354EfA26EF6ad2A0258755E926a740F) |
+| StudioNet | `0x06544f617B49BcA2b3b131198aB0734879Fb9c5e` | [View](https://explorer-studio.genlayer.com/address/0x06544f617B49BcA2b3b131198aB0734879Fb9c5e) |
 
 </div>
 
@@ -113,12 +113,14 @@ LICENSE                       MIT
 
 <div align="center">
 
-![Tested](https://img.shields.io/badge/full_lifecycle_static_audit-passed-brightgreen?style=flat-square)
-![Untested](https://img.shields.io/badge/live_multi_validator_consensus-not_yet_run-yellow?style=flat-square)
+![Tested](https://img.shields.io/badge/static_audit_%2B_reproducible_tests-passed_26%2F26-brightgreen?style=flat-square)
+![Untested](https://img.shields.io/badge/live_dispute%2Freputation_lifecycle-not_yet_run-yellow?style=flat-square)
 
 </div>
 
-The contract has passed this project's full ten-item nondet safety audit (positional `run_nondet_unsafe` calls, zero `self.` references in either nested closure, no `.send()`/`float()`/`DynArray`-on-nested-dataclass, address-key normalization confirmed identical at every write and read site) and is deployed live on StudioNet at the address above. What has **not** yet been exercised is a full live lifecycle against the deployed contract — `open_rental` through `finalize_check`, including the challenge path — via Studio's Run and Debug panel or the live app. This is a known, named gap, not an oversight: the contract is static-audit-clean and deployed, but "deployed" and "live-consensus-verified end to end" are different claims, and this README does not round one up to the other.
+The contract passes this project's full ten-item nondet safety audit and now has a reproducible test suite — `tests/test_contract_static.py` (14/14 passing, source-level safety and regression checks) and `tests/test_lifecycle_model.py` (12/12 passing, a pure-Python state-machine model covering lock_return, condition checks, challenges — upheld/overturned/rejected — voided outcomes, and finalization). Both were actually run and confirmed passing, not merely written.
+
+What has **not** yet been exercised is a live, end-to-end lifecycle run against the deployed contract. Only `open_rental` has been called live so far. **A single successful write is not evidence the dispute/reputation system works** — `lock_return` through `finalize_check`, including a full challenge round using the renter account, still needs to be run live via Studio's Run and Debug panel or the app itself before this is fully proven. This gap was specifically flagged by a steward reviewing the first submission, and this README does not round the one confirmed `open_rental` transaction up into a broader claim.
 
 <br />
 
