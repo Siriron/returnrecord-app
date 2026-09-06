@@ -3,7 +3,7 @@
 // address means editing this one line. See project knowledge section 7
 // for why this pattern is the confirmed standing choice.
 
-export const CONTRACT_ADDRESS = '0x1B2C516eD354EfA26EF6ad2A0258755E926a740F';
+export const CONTRACT_ADDRESS = '0x06544f617B49BcA2b3b131198aB0734879Fb9c5e';
 
 export const STUDIONET_CONFIG = {
   chainId: '0xF22F', // 61999
