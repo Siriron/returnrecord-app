@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { WalletButton } from './WalletButton';
+import { CONTRACT_ADDRESS, EXPLORER_ADDRESS_URL } from '../config/chains';
 import './Layout.css';
 
 export function Layout() {
@@ -18,6 +19,9 @@ export function Layout() {
             <NavLink to="/new" className={({ isActive }) => (isActive ? 'active' : '')}>
               Open a rental
             </NavLink>
+            <NavLink to="/reputation" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Condition record
+            </NavLink>
             <NavLink to="/how-it-works" className={({ isActive }) => (isActive ? 'active' : '')}>
               How it works
             </NavLink>
@@ -32,7 +36,7 @@ export function Layout() {
         <div className="container site-footer-inner">
           <span>Built on GenLayer · StudioNet</span>
           <a
-            href="https://explorer-studio.genlayer.com/address/0x1B2C516eD354EfA26EF6ad2A0258755E926a740F"
+            href={EXPLORER_ADDRESS_URL(CONTRACT_ADDRESS)}
             target="_blank"
             rel="noreferrer"
           >
