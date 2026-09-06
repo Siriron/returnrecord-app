@@ -1,0 +1,46 @@
+.rep-page {
+  max-width: 640px;
+}
+
+.rep-page h1 {
+  font-size: 1.9rem;
+  margin-bottom: 12px;
+}
+
+.rep-search {
+  display: flex;
+  gap: 10px;
+  margin: 24px 0 32px;
+}
+
+.rep-search input {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.rep-address {
+  color: var(--ash);
+  margin-bottom: 20px;
+}
+
+.rep-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.rep-col h2 {
+  font-size: 1.05rem;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 560px) {
+  .rep-columns {
+    grid-template-columns: 1fr;
+  }
+}
