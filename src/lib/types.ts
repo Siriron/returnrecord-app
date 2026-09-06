@@ -53,10 +53,14 @@ export interface Challenge {
 
 export interface Reputation {
   party: string;
-  condition_matches_count: number;
-  material_damage_count: number;
-  inconclusive_count: number;
+  owner_condition_matches_count: number;
+  owner_material_damage_count: number;
+  owner_inconclusive_count: number;
+  renter_condition_matches_count: number;
+  renter_material_damage_count: number;
+  renter_inconclusive_count: number;
   last_verdict: Verdict;
+  last_verdict_role: 'owner' | 'renter' | '';
   last_finalized_at: number;
 }
 
@@ -66,5 +70,3 @@ export const CHALLENGE_REASON_CODES = [
   'PRE_EXISTING_DAMAGE_IGNORED',
   'EVIDENCE_STALE_SINCE',
 ] as const;
-
-export type ChallengeReasonCode = (typeof CHALLENGE_REASON_CODES)[number];
