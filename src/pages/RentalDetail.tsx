@@ -136,6 +136,10 @@ export function RentalDetail() {
               onChange={(e) => setReturnUrl(e.target.value)}
               placeholder="https://ipfs.io/ipfs/… or https://arweave.net/…"
             />
+            <span className="hint">
+              Must be a small HTML page containing the photo, not the raw image file — the
+              jury renders it as a webpage. Arweave is currently the more reliable host.
+            </span>
           </div>
           {returnCommitment && (
             <div className="commitment-preview">

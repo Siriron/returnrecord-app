@@ -112,7 +112,12 @@ export function OpenRental() {
           />
           <span className="hint">
             Only immutable IPFS or Arweave links are accepted — this is what makes the evidence
-            tamper-proof.
+            tamper-proof. The link must point to a small HTML page containing the photo (not
+            the raw image file directly) — the jury renders it as a webpage. Arweave is
+            currently the more reliable host for this; see{' '}
+            <a href="https://github.com/Siriron/returnrecord-app/blob/main/docs/deployment.md#evidence-hosting-requirements-confirmed-via-live-testing" target="_blank" rel="noreferrer">
+              evidence hosting requirements
+            </a>.
           </span>
           {referenceUrl && !urlLooksValid && (
             <span className="hint hint--error">That doesn't look like a valid IPFS or Arweave link.</span>
