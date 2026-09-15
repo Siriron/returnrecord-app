@@ -4,8 +4,8 @@
 
 Deployed directly via [GenLayer Studio](https://studio.genlayer.com/contracts) from `contracts/ReturnRecord.py`.
 
-**StudioNet:** `0x06544f617B49BcA2b3b131198aB0734879Fb9c5e`
-[View on Explorer](https://explorer-studio.genlayer.com/address/0x06544f617B49BcA2b3b131198aB0734879Fb9c5e)
+**StudioNet:** `0x7e7544B55d0d905286C2eb7E6389Acd6522aCE4A`
+[View on Explorer](https://explorer-studio.genlayer.com/address/0x7e7544B55d0d905286C2eb7E6389Acd6522aCE4A)
 
 To redeploy: paste the contract source into Studio's contract editor, deploy, and update the single `CONTRACT_ADDRESS` constant in `src/config/chains.ts` — this is the only place the address is referenced anywhere in the app.
 
@@ -22,7 +22,13 @@ Deploy the built output to Vercel or any static host. `vercel.json` includes the
 ## Testing status
 
 - **Confirmed:** the contract passes this project's full static nondet-safety audit — positional `run_nondet_unsafe` calls, zero `self` references inside either nested closure (verified via an indentation-scope-aware script, not a plain grep), no `.send()`/`float()`/`DynArray`-on-nested-dataclass, address-key normalization identical at every write and read site for the `reputation` `TreeMap`.
-- **Confirmed (Sep 2026):** a reproducible test suite exists and has actually been run — `tests/test_contract_static.py` (14/14 passing) and `tests/test_lifecycle_model.py` (12/12 passing), covering `lock_return`, condition check filing/resolution, challenges (upheld/overturned/rejected), voided outcomes, and finalization as a pure-Python lifecycle model plus source-level regression checks. See `docs/contracts.md`'s Changelog for exactly what these tests confirm.
-- **Not yet confirmed:** a live, end-to-end lifecycle run against the deployed contract. Only `open_rental` has been exercised live so far — `lock_return` through `finalize_check`, including a challenge, has not yet been run against the deployed StudioNet contract via Studio's Run and Debug panel or the live frontend. **A single write succeeding is not evidence the dispute/reputation system works end to end** — this is a steward-identified gap, not just an internal one, and this document does not treat the one live `open_rental` transaction as proof of anything beyond that one write.
+- **Confirmed:** a reproducible test suite exists and has actually been run — `tests/test_contract_static.py` (14/14 passing) and `tests/test_lifecycle_model.py` (12/12 passing), covering `lock_return`, condition check filing/resolution, challenges (upheld/overturned/rejected), voided outcomes, and finalization as a pure-Python lifecycle model plus source-level regression checks. See `docs/contracts.md`'s Changelog for exactly what these tests confirm.
+- **Confirmed live (Sep 14 2026):** the complete dispute-and-reputation lifecycle has been run end to end against the deployed StudioNet contract via Studio's Run and Debug panel, using two independently controlled wallets in the owner and renter roles — including a real, non-voided verdict, a full challenge round with its own independent second jury re-derivation, finalization, and a `get_reputation` read confirming the role-specific counters. Every transaction hash, input value, and raw return value is logged in [`docs/live-verification.md`](./live-verification.md). This closes the exact gap a steward flagged on the prior submission: a single `open_rental` write is not evidence the dispute/reputation system works, and this document no longer rests on that alone.
 
-Recommended next step before treating this as fully proven: run the complete lifecycle at least twice in Studio's Run and Debug panel — once with no dispute (straight to `finalize_check`), once using the renter account through a full `open_challenge` → `resolve_challenge` round — confirming clean stderr and a correctly populated, role-specific `reputation` entry for both parties after each. Then repeat against the live frontend, including a check of the new `/reputation` page.
+## Evidence hosting requirements (confirmed via live testing)
+
+`reference_url` and `return_url` are rendered via `gl.nondet.web.render(url, mode="screenshot")`, which navigates a headless browser to the URL and screenshots the resulting page — **it requires a real HTML document with a DOM to render, not a bare image file.** A URL that resolves directly to raw image bytes (e.g. a plain `.jpg` served with no HTML wrapper) fails with `WEBPAGE_LOAD_FAILED`, which the contract reports as a `SOURCE_UNAVAILABLE` void — this looks identical to a dead link unless the underlying exception is inspected directly (see the Sep 2026 diagnostic fix in `docs/contracts.md`'s Changelog).
+
+**Confirmed working pattern:** wrap the evidence image in a minimal, self-contained HTML page (a single `<img>` tag, the image embedded as a `data:` URI so the render has no second network dependency), and host that HTML file at the `ipfs://`/`arweave.net` URL instead of the raw image. This was confirmed live using Arweave-hosted HTML wrappers — see `docs/live-verification.md` for the exact URLs and results.
+
+**A separate, independently confirmed finding: `ipfs.io` returned unreliable results during testing** — two different real, valid CIDs (a plain image and an HTML-wrapped image) both voided with a render failure, and a direct fetch to `ipfs.io` outside the contract was explicitly bot-blocked. `arweave.net` was not observed to have this problem. Until this is independently re-confirmed, prefer Arweave for new evidence uploads.
