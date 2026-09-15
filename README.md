@@ -74,7 +74,7 @@ A check can also come back `voided` — decided by the same multi-validator cons
 
 | Network | Address | Explorer |
 |---|---|---|
-| StudioNet | `0x06544f617B49BcA2b3b131198aB0734879Fb9c5e` | [View](https://explorer-studio.genlayer.com/address/0x06544f617B49BcA2b3b131198aB0734879Fb9c5e) |
+| StudioNet | `0x7e7544B55d0d905286C2eb7E6389Acd6522aCE4A` | [View](https://explorer-studio.genlayer.com/address/0x7e7544B55d0d905286C2eb7E6389Acd6522aCE4A) |
 
 </div>
 
@@ -99,10 +99,13 @@ Full deployment instructions: [`docs/deployment.md`](./docs/deployment.md)
 ## Project structure
 
 ```
-contracts/ReturnRecord.py    The GenVM contract
-src/                          React + Vite app
-docs/                         architecture.md, deployment.md, frontend.md, contracts.md
-LICENSE                       MIT
+contracts/ReturnRecord.py         The GenVM contract
+src/                               React + Vite app
+docs/                              architecture.md, deployment.md, frontend.md, contracts.md,
+                                    live-verification.md (full lifecycle proof, Sep 14 2026)
+docs/assets/evidence-samples/      The exact HTML-wrapped evidence files used in live testing
+tests/                             test_contract_static.py, test_lifecycle_model.py
+LICENSE                            MIT
 ```
 
 <br />
@@ -114,13 +117,13 @@ LICENSE                       MIT
 <div align="center">
 
 ![Tested](https://img.shields.io/badge/static_audit_%2B_reproducible_tests-passed_26%2F26-brightgreen?style=flat-square)
-![Untested](https://img.shields.io/badge/live_dispute%2Freputation_lifecycle-not_yet_run-yellow?style=flat-square)
+![Tested](https://img.shields.io/badge/live_full_lifecycle-confirmed_end_to_end-brightgreen?style=flat-square)
 
 </div>
 
-The contract passes this project's full ten-item nondet safety audit and now has a reproducible test suite — `tests/test_contract_static.py` (14/14 passing, source-level safety and regression checks) and `tests/test_lifecycle_model.py` (12/12 passing, a pure-Python state-machine model covering lock_return, condition checks, challenges — upheld/overturned/rejected — voided outcomes, and finalization). Both were actually run and confirmed passing, not merely written.
+The contract passes this project's full ten-item nondet safety audit and has a reproducible test suite — `tests/test_contract_static.py` (14/14 passing) and `tests/test_lifecycle_model.py` (12/12 passing), covering `lock_return`, condition check filing/resolution, challenges (upheld/overturned/rejected), voided outcomes, and finalization as source-level and pure-Python model checks.
 
-What has **not** yet been exercised is a live, end-to-end lifecycle run against the deployed contract. Only `open_rental` has been called live so far. **A single successful write is not evidence the dispute/reputation system works** — `lock_return` through `finalize_check`, including a full challenge round using the renter account, still needs to be run live via Studio's Run and Debug panel or the app itself before this is fully proven. This gap was specifically flagged by a steward reviewing the first submission, and this README does not round the one confirmed `open_rental` transaction up into a broader claim.
+**Confirmed live (Sep 14 2026):** the full dispute-and-reputation lifecycle has been run end to end against the deployed StudioNet contract, using two independently controlled wallets in the owner and renter roles — `open_rental` → `lock_return` → `file_condition_check` → `resolve_check` (a real, non-voided `material_damage` verdict) → `open_challenge` → `resolve_challenge` (an independent second jury round, `UPHOLD`) → `finalize_check` → `get_reputation` (confirming the role-specific `renter_material_damage_count` incremented and `owner_*` counters untouched). Full transaction-by-transaction detail, including exact evidence URLs and raw return values, is in [`docs/live-verification.md`](./docs/live-verification.md). This is a real completed dispute path, not just a happy-path write — a steward reviewing the prior submission specifically asked for this proof, and this README does not claim anything beyond what that log actually shows.
 
 <br />
 
