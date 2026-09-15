@@ -647,11 +647,36 @@ class ReturnRecord(gl.Contract):
             try:
                 reference_image = gl.nondet.web.render(rental_mem.reference_url, mode="screenshot")
                 return_image = gl.nondet.web.render(rental_mem.return_url, mode="screenshot")
-            except Exception:
+            except Exception as render_exc:
+                # DIAGNOSTIC FIX (Sep 2026): the prior version swallowed the
+                # real exception entirely, always reporting a generic
+                # SOURCE_UNAVAILABLE regardless of cause. This made a real
+                # render failure (e.g. an evidence URL resolving to a bare
+                # binary response with no DOM to screenshot) indistinguishable
+                # from a genuinely dead link. Surfacing the real, sanitized
+                # exception text lets a caller — or a future debugging
+                # session — see WHY the render failed, without leaking
+                # anything unsanitized on-chain. This does not change the
+                # void_reason_code enum or validator agreement logic: both
+                # jurors still independently hit the same real exception and
+                # both independently produce this same void path, so
+                # consensus is unaffected; only the stored diagnostic detail
+                # improves. This fix is what let live testing confirm the
+                # actual cause: gl.nondet.web.render(mode="screenshot")
+                # requires evidence_url/return_url to resolve to a real
+                # renderable HTML page (a DOM to screenshot) — a URL that
+                # resolves to a bare image file with no HTML wrapper fails
+                # with WEBPAGE_LOAD_FAILED, not because the source is
+                # unreachable. See docs/deployment.md's Evidence Hosting
+                # Requirements section.
+                detail = _sanitize(
+                    f"{type(render_exc).__name__}: {render_exc}",
+                    200,
+                )
                 return {
                     "outcome": _VOID_OUTCOME,
                     "void_reason_code": "SOURCE_UNAVAILABLE",
-                    "reasoning_summary": "One or both evidence images could not be rendered.",
+                    "reasoning_summary": f"One or both evidence images could not be rendered. Detail: {detail}",
                 }
 
             prompt = f"""{_CHARTER}
